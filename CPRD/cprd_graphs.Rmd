@@ -1,0 +1,668 @@
+
+---
+title: "cprd_graphsR"
+author: "Jen Dykxhoorn"
+date: "2024-07-20"
+output: word_document
+---
+
+```{r install packages, include=FALSE}
+install.packages("ggrepel")
+install.packages("viridis")
+install.packages("tidyverse")
+install.packages("ggplot2")
+install.packages("ggthemes")
+install.packages("tidyverse")
+install.packages("RColorBrewer")
+install.packages("extrafont")
+install.packages("gcookbook")
+install.packages("readxl")
+install.packages("scales")
+#install.packages("patchwork", lib="D:/Rpackages")
+install.packages("ggthemes")
+# install from GitHub since not on CRAN
+install.packages("devtools")
+devtools::install_github("JohnCoene/charter")
+
+library("ggthemes")
+#library("viridis")
+library("tidyverse")
+library("ggplot2")
+library("tidyverse")
+library("RColorBrewer")
+library("extrafont")
+library("gcookbook")
+library("readxl")
+library("scales")
+library("patchwork")
+library("formatR")
+```
+
+```{r formatting}
+windowsFonts("Times" = windowsFont("Times"))
+
+#Need to change the number of decimal places for all following plots
+scaleTWO <- function(x) sprintf("%.2f", x)
+scaleONE <- function(x) sprintf("%.1f", x)
+scaleNO <- function(x) sprintf("%.0f",x) ##THIS IS WHAT I NEED FOR WHOLE NUMBERS! 
+```
+
+
+
+
+```{r}
+knitr::opts_chunk$set(tidy.opts = list(width.cutoff = 60), tidy = TRUE)
+
+```
+
+##Overall
+```{r overall bring in data, include=FALSE}
+
+overall <- read.csv(file="...overall.csv", 
+                na.strings = c("NA", " ", "-999"))
+
+overall$Overall <- as.factor(overall$Overall)
+
+#Need to change the number of decimal places for all following plots
+scaleTWO <- function(x) sprintf("%.2f", x)
+scaleONE <- function(x) sprintf("%.1f", x)
+scaleNO <- function(x) sprintf("%.0f",x) ##THIS IS WHAT I NEED FOR WHOLE NUMBERS! 
+
+```
+
+```{r overall}
+ggplot(data = overall, mapping = aes(x = Year, y = Incidence, group = Overall)) + 
+      labs(x = "Year", y = "Incidence rate (95% CI)",
+       title = "") +
+  geom_line(aes(color = Overall, group = Overall), linewidth=1) +
+  geom_ribbon(aes(ymin=ci_low, ymax=ci_high, fill = Overall, alpha=0.1)) + 
+  theme(plot.title = element_text(hjust = 0)) +
+  theme_tufte() +
+  theme(text=element_text(family="Times", color = "black")) + 
+  
+  scale_x_continuous(labels = scaleNO, breaks = c(2009, 2011, 2013, 2015, 2017, 2019)) +
+  scale_alpha_continuous(name=NULL, guide = "none") + 
+  theme(legend.title = element_blank(), legend.text = element_text(family="Times", size = 10), legend.background = element_blank(), legend.justification = c(1,0), legend.position="bottom") + 
+  geom_hline(yintercept=c(50,60,70,80,90,100), linetype="dotted", color="grey") + 
+  ylim(40,100) + 
+  theme(axis.line.x.bottom = element_line(linetype = "solid", color = "black")) + 
+  theme(axis.line.y.left = element_line(linetype = "solid", color = "black")) + 
+  theme(axis.text = element_text(color = "black"))   +
+  theme(legend.position="bottom") + 
+  theme(legend.title = element_blank())+
+  theme(legend.background = element_rect(linetype="solid"))+
+  theme(axis.text = element_text(size = 14), axis.title=element_text(size = 16), legend.text = element_text(size = 14))
+
+ 
+ggsave(overall_v2.png", dpi=1200)
+
+
+```
+
+
+
+
+##Sex
+
+```{r ir bring in data, include=FALSE}
+
+sex <- read.csv(file=".../04_results/sex.csv", 
+                na.strings = c("NA", " ", "-999"))
+
+sex$Sex <- as.factor(sex$Sex)
+
+```
+
+```{r sex_ir}
+ggplot(data = sex, mapping = aes(x = Year, y = Incidence, group = Sex)) + 
+      labs(x = "Year", y = "Incidence rate (95% CI)",
+       title = "") +
+  geom_line(aes(color = Sex, group = Sex), linewidth=1) +
+  geom_ribbon(aes(ymin=ci_low, ymax=ci_high, fill = Sex, alpha=0.1)) + 
+  theme(plot.title = element_text(hjust = 0)) +
+  theme_tufte() +
+  theme(text=element_text(family="Times", color = "black")) + 
+  scale_x_continuous(labels = scaleNO, breaks = c(2009, 2011, 2013, 2015, 2017, 2019)) +
+  scale_alpha_continuous(name=NULL, guide = "none") + 
+    theme(legend.title = element_blank(), legend.text = element_text(family="Times", size = 10), legend.background = element_blank(), legend.justification = c(1,0), legend.position="bottom") + 
+  geom_hline(yintercept=c(50,60,70,80,90,100), linetype="dotted", color="grey") + 
+  ylim(40,100) + 
+  theme(axis.line.x.bottom = element_line(linetype = "solid", color = "black")) + 
+  theme(axis.line.y.left = element_line(linetype = "solid", color = "black")) + 
+  theme(axis.text = element_text(color = "black"))   +
+  theme(legend.position="bottom") + 
+  theme(legend.title = element_blank())+
+  theme(legend.background = element_rect(linetype="solid"))+
+  theme(axis.text = element_text(size = 14), axis.title=element_text(size = 16), legend.text = element_text(size = 14))
+
+ggsave(...sex_v2.png", dpi=1200)
+
+```
+
+##Age group
+
+```{r age group bring in data, include=FALSE}
+
+agegroup <- read.csv(file="...age.csv", 
+                na.strings = c("NA", " ", "-999"))
+
+agegroup$Age <- as.factor(agegroup$Age)
+
+```
+
+
+```{r age}
+ggplot(data = agegroup, mapping = aes(x = Year, y = Incidence, group = Age)) + 
+      labs(x = "Year", y = "Incidence rate (95% CI)",
+       title = "") +
+  geom_line(aes(color = Age, group = Age), linewidth=1) +
+  geom_ribbon(aes(ymin=ci_low, ymax=ci_high, fill = Age), alpha=0.15) +
+  theme(plot.title = element_text(hjust = 0)) +
+  theme_tufte() +
+  scale_alpha_continuous(name=NULL, guide = "none") + 
+  scale_y_continuous(limits = c(30,145)) + 
+  geom_hline(yintercept=c(50,75,100,125), linetype="dotted", color="grey", show.legend = FALSE) + 
+  scale_x_continuous(labels = scaleNO, breaks = c(2009, 2011, 2013, 2015, 2017, 2019)) +
+  theme(axis.line.x.bottom = element_line(linetype = "solid", color = "black")) + 
+  theme(axis.line.y.left = element_line(linetype = "solid", color = "black")) + 
+  theme(axis.text = element_text(color = "black"))   +
+  theme(legend.position="bottom") + 
+  theme(legend.title = element_blank())+
+  theme(legend.background = element_rect(linetype="solid"))+
+  theme(axis.text = element_text(size = 14), axis.title=element_text(size = 16), legend.text = element_text(size = 14))
+
+ggsave(...age_v2.png", dpi=1200)
+
+```
+
+
+
+
+
+## Cohort
+
+```{r cohort bring in data, include=FALSE}
+
+cohort <- read.csv(file="...cohort.csv", 
+                na.strings = c("NA", " ", "-999"))
+
+cohort$Cohort <- as.factor(cohort$Cohort)
+
+cohort <- cohort %>% 
+  select(-starts_with("X"))
+
+```
+
+```{r cohort}
+ggplot(data = cohort, mapping = aes(x = Year, y = Incidence, group = Cohort)) + 
+      labs(x = "Year", y = "Incidence rate (95% CI)",
+       title = "") +
+  geom_line(aes(color = Cohort, group = Cohort), linewidth=1) +
+  geom_ribbon(aes(ymin=ci_low, ymax=ci_high, fill = Cohort), alpha=0.15) +
+  theme(plot.title = element_text(hjust = 0)) +
+  theme_tufte() +
+  scale_alpha_continuous(name=NULL, guide = "none") + 
+  scale_y_continuous(limits = c(30,102)) + 
+  geom_hline(yintercept=c(40,60,80,100), linetype="dotted", color="grey", show.legend = FALSE) + 
+  scale_x_continuous(labels = scaleNO, breaks = c(2009, 2011, 2013, 2015, 2017, 2019)) +
+  theme(axis.line.x.bottom = element_line(linetype = "solid", color = "black")) + 
+  theme(axis.line.y.left = element_line(linetype = "solid", color = "black")) + 
+  theme(axis.text = element_text(color = "black"))   +
+  theme(legend.position="bottom") + 
+  theme(legend.title = element_blank())+
+  theme(legend.background = element_rect(linetype="solid"))+
+  theme(axis.text = element_text(size = 14), axis.title=element_text(size = 16), legend.text = element_text(size = 14))
+
+
+ggsave(...cohort_v2.png", dpi=1200)
+
+```
+
+## Ethnicity
+
+#had to import and export in Stata to delete the empty category
+
+```{r ethnicity bring in data, include=FALSE}
+
+ethnicity <- read.csv(file="...ethnicity.csv", 
+                na.strings = c("NA", " ", "-999"))
+
+ethnicity$Ethnicity <- as.factor(ethnicity$Ethnicity)
+
+ethnicity <- ethnicity[!apply(is.na(ethnicity) | ethnicity == "", 1, all),]
+
+```
+
+
+
+```{r ethnicity}
+ggplot(data = ethnicity, mapping = aes(x = Year, y = Incidence, group = Ethnicity)) + 
+      labs(x = "Year", y = "Incidence rate (95% CI)",
+       title = "") +
+  geom_line(aes(color = Ethnicity, group = Ethnicity), linewidth=1) +
+  geom_ribbon(aes(ymin=ci_low, ymax=ci_high, fill = Ethnicity), alpha=0.15) +
+  theme(plot.title = element_text(hjust = 0)) +
+  theme_tufte() +
+  scale_alpha_continuous(name=NULL, guide = "none") + 
+  scale_y_continuous(limits = c(30,102)) + 
+  geom_hline(yintercept=c(40,60,80,100), linetype="dotted", color="grey", show.legend = FALSE) + 
+  scale_x_continuous(labels = scaleNO, breaks = c(2009, 2011, 2013, 2015, 2017, 2019)) +
+  theme(axis.line.x.bottom = element_line(linetype = "solid", color = "black")) + 
+  theme(axis.line.y.left = element_line(linetype = "solid", color = "black")) + 
+  theme(axis.text = element_text(color = "black"))   +
+  theme(legend.position="bottom") + 
+  theme(legend.title = element_blank())+
+  theme(legend.background = element_rect(linetype="solid"))+
+  theme(axis.text = element_text(size = 14), axis.title=element_text(size = 16), legend.text = element_text(size = 14))
+
+ggsave(...ethnicity_v2.png", dpi=1200)
+
+
+```
+
+
+## Country
+
+```{r country bring in data, include=FALSE}
+
+country <- read.csv(file="...country.csv", 
+                na.strings = c("NA", " ", "-999"))
+
+country <- country[!apply(is.na(country) | country == "", 1, all),]
+
+
+country$Country <- as.factor(country$Country)
+
+```
+
+```{r country}
+ggplot(data = country, mapping = aes(x = Year, y = Incidence, group = Country)) + 
+      labs(x = "Year", y = "Incidence rate (95% CI)",
+       title = "") +
+  geom_line(aes(color = Country, group = Country), linewidth=1) +
+  geom_ribbon(aes(ymin=ci_low, ymax=ci_high, fill = Country), alpha=0.15) +
+  theme(plot.title = element_text(hjust = 0)) +
+  theme_tufte() +
+  scale_alpha_continuous(name=NULL, guide = "none") + 
+  scale_y_continuous(limits = c(30,102)) + 
+  geom_hline(yintercept=c(40,60,80,100), linetype="dotted", color="grey", show.legend = FALSE) + 
+  scale_x_continuous(labels = scaleNO, breaks = c(2009, 2011, 2013, 2015, 2017, 2019)) +
+  theme(axis.line.x.bottom = element_line(linetype = "solid", color = "black")) + 
+  theme(axis.line.y.left = element_line(linetype = "solid", color = "black")) + 
+  theme(axis.text = element_text(color = "black"))   +
+  theme(legend.position="bottom") + 
+  theme(legend.title = element_blank())+
+  theme(legend.background = element_rect(linetype="solid"))+
+  theme(axis.text = element_text(size = 14), axis.title=element_text(size = 16), legend.text = element_text(size = 14))
+
+
+ggsave(...country_v2.png", dpi=1200)
+
+```
+
+
+
+## Region
+
+```{r region bring in data, include=FALSE}
+
+region <- read.csv(file="...region.csv", 
+                na.strings = c("NA", " ", "-999"))
+
+region$Region <- as.factor(region$Region)
+
+
+```
+
+```{r region}
+ggplot(data = region, mapping = aes(x = Year, y = Incidence, group = Region)) + 
+      labs(x = "Year", y = "Incidence rate (95% CI)",
+       title = "") +
+  geom_line(aes(color = Region, group = Region), linewidth=1) +
+  geom_ribbon(aes(ymin=ci_low, ymax=ci_high, fill = Region), alpha=0.15) +
+  theme(plot.title = element_text(hjust = 0)) +
+  theme_tufte() +
+  scale_alpha_continuous(name=NULL, guide = "none") + 
+  scale_y_continuous(limits = c(30,102)) + 
+  geom_hline(yintercept=c(40,60,80,100), linetype="dotted", color="grey", show.legend = FALSE) + 
+  scale_x_continuous(labels = scaleNO, breaks = c(2009, 2011, 2013, 2015, 2017, 2019)) +
+  theme(axis.line.x.bottom = element_line(linetype = "solid", color = "black")) + 
+  theme(axis.line.y.left = element_line(linetype = "solid", color = "black")) + 
+  theme(axis.text = element_text(color = "black"))   +
+  theme(legend.position="bottom") + 
+  theme(legend.title = element_blank())+
+  theme(legend.background = element_rect(linetype="solid"))+
+  theme(axis.text = element_text(size = 14), axis.title=element_text(size = 16), legend.text = element_text(size = 10))
+
+ggsave(...region_v2.png", dpi=1200)
+
+
+```
+
+
+
+
+## Deprivation
+
+```{r deprivation bring in data, include=FALSE}
+
+deprivation <- read.csv(file="...dep.csv", 
+                        na.strings = c("NA", " ", "-999"))
+
+deprivation <- deprivation[!apply(is.na(deprivation) | deprivation == "", 1, all),]
+
+```
+
+```{r deprivation}
+ggplot(data = deprivation, mapping = aes(x = Year, y = Incidence, group = Deprivation)) + 
+      labs(x = "Year", y = "Incidence rate (95% CI)",
+       title = "") +
+  geom_line(aes(color = Deprivation, group = Deprivation), linewidth=1) +
+  geom_ribbon(aes(ymin=ci_low, ymax=ci_high, fill = Deprivation), alpha=0.15) +
+  theme(plot.title = element_text(hjust = 0)) +
+  theme_tufte() +
+  scale_alpha_continuous(name=NULL, guide = "none") + 
+  scale_y_continuous(limits = c(30,102)) + 
+  geom_hline(yintercept=c(40,60,80,100), linetype="dotted", color="grey", show.legend = FALSE) + 
+  scale_x_continuous(labels = scaleNO, breaks = c(2009, 2011, 2013, 2015, 2017, 2019)) +
+  theme(axis.line.x.bottom = element_line(linetype = "solid", color = "black")) + 
+  theme(axis.line.y.left = element_line(linetype = "solid", color = "black")) + 
+  theme(axis.text = element_text(color = "black"))   +
+  theme(legend.position="bottom") + 
+  theme(legend.title = element_blank())+
+  theme(legend.background = element_rect(linetype="solid"))+
+  theme(axis.text = element_text(size = 14), axis.title=element_text(size = 16), legend.text = element_text(size = 10))
+
+
+ggsave(".../deprivation_v3.png", dpi=1200)
+
+
+```
+
+###############################################
+
+## NOW incidence rate ratios
+
+
+## Sex
+
+```{r irr/sex bring in data, include=FALSE}
+
+sex <- read.csv(file="...sex_irr.csv", 
+                na.strings = c("NA", " ", "-999"))
+
+sex$Sex <- as.factor(sex$Sex)
+
+
+##this deletes empty and NA rows
+sex <- sex[!apply(is.na(sex) | sex == "", 1, all),]
+
+```
+
+```{r irr/sex}
+
+ggplot(data = sex, mapping = aes(x = Year, y = IRR, group = Sex)) + 
+      labs(x = "Year", y = "IRR (95% CI)",
+       title = "") +
+  geom_line(aes(color = Sex, group = Sex), linewidth=1) +
+  geom_ribbon(aes(ymin=ci_low, ymax=ci_high, fill = Sex, alpha=0.1)) + 
+  theme(plot.title = element_text(hjust = 0)) +
+  theme_tufte() +
+  theme(text=element_text(family="Times", color = "black")) + 
+  scale_x_continuous(labels = scaleNO, breaks = c(2009, 2011, 2013, 2015, 2017, 2019)) +
+  scale_alpha_continuous(name=NULL, guide = "none") + 
+    theme(legend.title = element_blank(), legend.text = element_text(family="Times", size = 10), legend.background = element_blank(), legend.justification = c(1,0), legend.position="bottom") + 
+  geom_hline(yintercept=c(0.5,1.0,1.5,2.0,2.5), linetype="dotted", color="grey") + 
+  ylim(0.5,2.6) + 
+  theme(axis.line.x.bottom = element_line(linetype = "solid", color = "black")) + 
+  theme(axis.line.y.left = element_line(linetype = "solid", color = "black")) + 
+  theme(axis.text = element_text(color = "black"))   +
+  theme(legend.position="bottom") + 
+  theme(legend.title = element_blank())+
+  theme(legend.background = element_rect(linetype="solid"))+
+  theme(axis.text = element_text(size = 14), axis.title=element_text(size = 16), legend.text = element_text(size = 14))
+
+
+ggsave("...sex_irr_v2.png", dpi=1200)
+
+
+```
+
+
+##Age group
+
+```{r age group bring in data, include=FALSE}
+
+agegroup <- read.csv(file="...age_irr.csv", 
+                na.strings = c("NA", " ", "-999"))
+
+agegroup$Age <- as.factor(agegroup$Age)
+
+
+```
+
+
+```{r age}
+ggplot(data = agegroup, mapping = aes(x = Year, y = IRR, group = Age)) + 
+      labs(x = "Year", y = "IRR (95% CI)",
+       title = "") +
+  geom_line(aes(color = Age, group = Age), linewidth=1) +
+  geom_ribbon(aes(ymin=ci_low, ymax=ci_high, fill = Age), alpha=0.15) +
+  theme(plot.title = element_text(hjust = 0)) +
+  theme_tufte() +
+  ylim(0.38,2.6) + 
+  scale_alpha_continuous(name=NULL, guide = "none") + 
+  geom_hline(yintercept=c(0.5,1.0,1.5,2.0,2.5), linetype="dotted", color="grey") + 
+  scale_x_continuous(labels = scaleNO, breaks = c(2009, 2011, 2013, 2015, 2017, 2019)) +
+  theme(axis.line.x.bottom = element_line(linetype = "solid", color = "black")) + 
+  theme(axis.line.y.left = element_line(linetype = "solid", color = "black")) + 
+  theme(axis.text = element_text(color = "black"))   +
+  theme(legend.position="bottom") + 
+  theme(legend.title = element_blank())+
+  theme(legend.background = element_rect(linetype="solid"))+
+  theme(axis.text = element_text(size = 14), axis.title=element_text(size = 16), legend.text = element_text(size = 14))
+
+
+
+
+ggsave("...age_irr_v2.png", dpi=1200)
+
+
+```
+
+
+## Cohort
+
+```{r cohort bring in data, include=FALSE}
+
+cohort <- read.csv(file="...cohort_irr.csv", 
+                na.strings = c("NA", " ", "-999"))
+
+cohort$Cohort <- as.factor(cohort$Cohort)
+
+#Delete all the extra columns, all starting with X
+cohort <- cohort %>% 
+  select(-starts_with("X"))
+
+```
+
+```{r cohort}
+ggplot(data = cohort, mapping = aes(x = Year, y = IRR, group = Cohort)) + 
+      labs(x = "Year", y = "IRR (95% CI)",
+       title = "") +
+  geom_line(aes(color = Cohort, group = Cohort), linewidth=1) +
+  geom_ribbon(aes(ymin=ci_low, ymax=ci_high, fill = Cohort), alpha=0.15) +
+  theme(plot.title = element_text(hjust = 0)) +
+  theme_tufte() +
+  scale_alpha_continuous(name=NULL, guide = "none") + 
+  geom_hline(yintercept=c(0.5,1.0,1.5,2.0,2.5), linetype="dotted", color="grey") + 
+  ylim(0.5,2.6) + 
+  scale_x_continuous(labels = scaleNO, breaks = c(2009, 2011, 2013, 2015, 2017, 2019)) +
+  theme(axis.line.x.bottom = element_line(linetype = "solid", color = "black")) + 
+  theme(axis.line.y.left = element_line(linetype = "solid", color = "black")) + 
+  theme(axis.text = element_text(color = "black"))   +
+  theme(legend.position="bottom") + 
+  theme(legend.title = element_blank())+
+  theme(legend.background = element_rect(linetype="solid"))+
+  theme(axis.text = element_text(size = 14), axis.title=element_text(size = 16), legend.text = element_text(size = 14))
+
+
+ggsave("...cohort_irr_v2.png", dpi=1200)
+
+```
+
+## Ethnicity
+
+```{r ethnicity bring in data, include=FALSE}
+
+ethnicity <- read.csv(file="...ethnicity_irr.csv", 
+                na.strings = c("NA", " ", "-999"))
+
+ethnicity$Ethnicity <- as.factor(ethnicity$Ethnicity)
+
+##this deletes empty and NA rows
+ethnicity <- ethnicity[!apply(is.na(ethnicity) | ethnicity == "", 1, all),]
+
+```
+
+
+
+```{r ethnicity}
+ggplot(data = ethnicity, mapping = aes(x = Year, y = IRR, group = Ethnicity)) + 
+      labs(x = "Year", y = "IRR (95% CI)",
+       title = "") +
+  geom_line(aes(color = Ethnicity, group = Ethnicity), linewidth=1) +
+  geom_ribbon(aes(ymin=ci_low, ymax=ci_high, fill = Ethnicity), alpha=0.15) +
+  theme(plot.title = element_text(hjust = 0)) +
+  theme_tufte() +
+  scale_alpha_continuous(name=NULL, guide = "none") + 
+  geom_hline(yintercept=c(0.5,1.0,1.5,2.0,2.5), linetype="dotted", color="grey") + 
+  ylim(0.5,2.6) + 
+  scale_x_continuous(labels = scaleNO, breaks = c(2009, 2011, 2013, 2015, 2017, 2019)) +
+  theme(axis.line.x.bottom = element_line(linetype = "solid", color = "black")) + 
+  theme(axis.line.y.left = element_line(linetype = "solid", color = "black")) + 
+  theme(axis.text = element_text(color = "black"))   +
+  theme(legend.position="bottom") + 
+  theme(legend.title = element_blank())+
+  theme(legend.background = element_rect(linetype="solid"))+
+  theme(axis.text = element_text(size = 14), axis.title=element_text(size = 16), legend.text = element_text(size = 14))
+
+ggsave("...ethnicity_irr_v2.png", dpi=1200)
+
+```
+
+
+## Country
+
+```{r country bring in data, include=FALSE}
+
+country <- read.csv(file="...country_irr.csv", 
+                na.strings = c("NA", " ", "-999"))
+
+country <- country[!apply(is.na(country) | country == "", 1, all),]
+
+
+country$Country <- as.factor(country$Country)
+
+
+```
+
+```{r country}
+ggplot(data = country, mapping = aes(x = Year, y = IRR, group = Country)) + 
+      labs(x = "Year", y = "IRR (95% CI)",
+       title = "") +
+  geom_line(aes(color = Country, group = Country), linewidth=1) +
+  geom_ribbon(aes(ymin=ci_low, ymax=ci_high, fill = Country), alpha=0.15) +
+  theme(plot.title = element_text(hjust = 0)) +
+  theme_tufte() +
+  scale_alpha_continuous(name=NULL, guide = "none") + 
+  geom_hline(yintercept=c(0.5,1.0,1.5,2.0,2.5), linetype="dotted", color="grey") + 
+  ylim(0.5,2.6) + 
+  scale_x_continuous(labels = scaleNO, breaks = c(2009, 2011, 2013, 2015, 2017, 2019)) +
+  theme(axis.line.x.bottom = element_line(linetype = "solid", color = "black")) + 
+  theme(axis.line.y.left = element_line(linetype = "solid", color = "black")) + 
+  theme(axis.text = element_text(color = "black"))   +
+  theme(legend.position="bottom") + 
+  theme(legend.title = element_blank())+
+  theme(legend.background = element_rect(linetype="solid"))+
+  theme(axis.text = element_text(size = 14), axis.title=element_text(size = 16), legend.text = element_text(size = 14))
+
+ggsave("...country_irr_v2.png", dpi=1200)
+
+```
+
+
+
+## Region
+
+```{r region bring in data, include=FALSE}
+
+region <- read.csv(file="...region_irr.csv", 
+                na.strings = c("NA", " ", "-999"))
+
+region$Region <- as.factor(region$Region)
+
+```
+
+```{r region}
+ggplot(data = region, mapping = aes(x = Year, y = IRR, group = Region)) + 
+      labs(x = "Year", y = "IRR (95% CI)",
+       title = "") +
+  geom_line(aes(color = Region, group = Region), linewidth=1) +
+  geom_ribbon(aes(ymin=ci_low, ymax=ci_high, fill = Region), alpha=0.15) +
+  theme(plot.title = element_text(hjust = 0)) +
+  theme_tufte() +
+  scale_alpha_continuous(name=NULL, guide = "none") + 
+  geom_hline(yintercept=c(0.5,1.0,1.5,2.0), linetype="dotted", color="grey") + 
+  ylim(0,2.2) + 
+  scale_x_continuous(labels = scaleNO, breaks = c(2009, 2011, 2013, 2015, 2017, 2019)) +
+  theme(axis.line.x.bottom = element_line(linetype = "solid", color = "black")) + 
+  theme(axis.line.y.left = element_line(linetype = "solid", color = "black")) + 
+  theme(axis.text = element_text(color = "black"))   +
+  theme(legend.position="bottom") + 
+  theme(legend.title = element_blank())+
+  theme(legend.background = element_rect(linetype="solid"))+
+  theme(axis.text = element_text(size = 14), axis.title=element_text(size = 16), legend.text = element_text(size = 10))
+
+
+ggsave(...region_irr_v2.png", dpi=1200)
+
+```
+
+
+
+## Deprivation
+
+```{r deprivation bring in data, include=FALSE}
+
+deprivation <- read.csv(file="...dep_irr.csv", 
+                na.strings = c("NA", " ", "-999"))
+
+deprivation <- deprivation[!apply(is.na(deprivation) | deprivation == "", 1, all),]
+
+```
+
+```{r deprivation}
+ggplot(data = deprivation, mapping = aes(x = Year, y = IRR, group = Deprivation)) + 
+      labs(x = "Year", y = "IRR (95% CI)",
+       title = "") +
+  geom_line(aes(color = Deprivation, group = Deprivation), linewidth=1) +
+  geom_ribbon(aes(ymin=ci_low, ymax=ci_high, fill = Deprivation), alpha=0.15) +
+  theme(plot.title = element_text(hjust = 0)) +
+  theme_tufte() +
+  scale_alpha_continuous(name=NULL, guide = "none") + 
+  geom_hline(yintercept=c(0.5,1.0,1.5,2.0), linetype="dotted", color="grey") + 
+  ylim(0,2.2) + 
+  scale_x_continuous(labels = scaleNO, breaks = c(2009, 2011, 2013, 2015, 2017, 2019)) +
+  theme(axis.line.x.bottom = element_line(linetype = "solid", color = "black")) + 
+  theme(axis.line.y.left = element_line(linetype = "solid", color = "black")) + 
+  theme(axis.text = element_text(color = "black"))   +
+  theme(legend.position="bottom") + 
+  theme(legend.title = element_blank())+
+  theme(legend.background = element_rect(linetype="solid"))+
+  theme(axis.text = element_text(size = 14), axis.title=element_text(size = 16), legend.text = element_text(size = 10))
+
+ggsave("...deprivation_irr_v2.png", dpi=1200)
+
+```
+
